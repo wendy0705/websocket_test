@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天室測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #chat-box {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+        #messageInput {
+            width: 80%;
+        }
+        #sendButton {
+            width: 18%;
+        }
+    </style>
+</head>
+<body>
+
+<h1>簡單聊天室</h1>
+
+<div id="chat-box"></div>
+
+<input type="text" id="messageInput" placeholder="輸入訊息...">
+<button id="sendButton">發送</button>
+
+<script>
+    // 連接 WebSocket
+    const socket = new WebSocket("ws://localhost:8080/chat");
+
+    // 監聽 WebSocket 連線成功
+    socket.onopen = function(event) {
+        console.log("WebSocket 已連接");
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML += "<p><strong>系統:</strong> WebSocket 連線成功！</p>";
+    };
+
+    // 監聽接收到的消息
+    socket.onmessage = function(event) {
+        const chatBox = document.getElementById("chat-box");
+        const newMessage = document.createElement("p");
+        newMessage.innerHTML = `<strong>訊息:</strong> ${event.data}`;
+        chatBox.appendChild(newMessage);
+        chatBox.scrollTop = chatBox.scrollHeight; // 自動捲動到最新訊息
+    };
+
+    // 監聽 WebSocket 關閉
+    socket.onclose = function(event) {
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML += "<p><strong>系統:</strong> WebSocket 連線已斷開</p>";
+    };
+
+    // 監聽 WebSocket 錯誤
+    socket.onerror = function(event) {
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML += "<p><strong>系統:</strong> WebSocket 錯誤</p>";
+    };
+
+    // 發送消息
+    document.getElementById("sendButton").onclick = function() {
+        const messageInput = document.getElementById("messageInput");
+        const message = messageInput.value;
+
+        const chatBox = document.getElementById("chat-box");
+
+        if (message.trim() !== "") {
+            socket.send(message); // 發送消息給後端
+
+            // 顯示自己發送的消息在聊天室中
+            const myMessage = document.createElement("p");
+            myMessage.innerHTML = `<strong>你:</strong> ${message}`;
+            chatBox.appendChild(myMessage);
+            chatBox.scrollTop = chatBox.scrollHeight; // 自動捲動到最新訊息
+
+            messageInput.value = ""; // 清空輸入框
+        }
+    };
+</script>
+
+</body>
+</html>
