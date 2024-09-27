@@ -2,7 +2,7 @@ HELP.md
 
 /target/**
 !/target/
-!/target/roommate-0.0.1-SNAPSHOT.jar
+!/target/chattest-0.0.1-SNAPSHOT.jar
 !.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###
@@ -32,3 +32,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+src/main/resources/application.properties
+

@@ -1,7 +1,9 @@
 package com.example.chattest.handler;
 
+import com.example.chattest.document.ChatMessage;
 import com.example.chattest.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -10,6 +12,7 @@ import org.springframework.web.socket.CloseStatus;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ChatWebSocketHandler extends TextWebSocketHandler {
@@ -18,33 +21,47 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String username = "testUser" + Math.random(); // 模擬唯一用戶名，方便測試多人聊天
 
-        session.getAttributes().put("username", username);
-        chatService.addUserToChatRoom(username, session); // 將用戶加入聊天室
-        System.out.println("用戶 " + username + " 已連線");
+        String userId = (String) session.getAttributes().get("userId");
+        String roomName = (String) session.getAttributes().get("roomName");
+//      ex.
+//      userId = 1
+//      session = StandardWebSocketSession[id=f704709b-092a-e2d0-e6eb-3636443d1e6f, uri=ws://localhost:8080/chat?userId=2&roomName=1_2]
+        chatService.addUserToChatRoom(roomName, session);
+
+        List<ChatMessage> previousMessages = chatService.getChatHistory(roomName);
+
+        for (ChatMessage chatMessage : previousMessages) {
+            String messageSender = chatMessage.getSenderId() == Integer.parseInt(userId) ? "我" : String.valueOf(chatMessage.getSenderId());
+            session.sendMessage(new TextMessage(messageSender + ": " + chatMessage.getMessage()));
+        }
+        System.out.println("用戶 " + userId + " 已連線");
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        // 處理訊息，這裡可以加入更多的業務邏輯
-        String senderUsername = (String) session.getAttributes().get("username");
+        // 處理發送消息
+        String roomName = (String) session.getAttributes().get("roomName");
+        String userId = (String) session.getAttributes().get("userId");
+        String messageContent = message.getPayload();
 
-        // 廣播訊息給聊天室內的其他成員
-        List<WebSocketSession> participants = chatService.getChatRoomParticipants(senderUsername);
-
+        // 廣播消息給同一個房間的其他成員
+        List<WebSocketSession> participants = chatService.getChatRoomParticipants(roomName);
         for (WebSocketSession participant : participants) {
-            if (participant.isOpen() && !participant.equals(session)) { // 排除自己，發送給其他人
-                participant.sendMessage(new TextMessage(senderUsername + ": " + message.getPayload()));
+            if (participant.isOpen() && !participant.equals(session)) {
+                participant.sendMessage(new TextMessage(userId + ": " + messageContent));
             }
         }
+
+        chatService.saveChatMessage(roomName, Integer.parseInt(userId), messageContent);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        String username = (String) session.getAttributes().get("username");
-        chatService.removeUserFromChatRoom(username, session);
-        System.out.println("用戶 " + username + " 已斷線");// 當用戶斷線時移除session
+        String userId = (String) session.getAttributes().get("userId");
+        String roomName = (String) session.getAttributes().get("roomName");
+        chatService.removeUserFromChatRoom(roomName, userId, session);
     }
+
 }
 

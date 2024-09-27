@@ -1,6 +1,7 @@
 package com.example.chattest.config;
 
 import com.example.chattest.handler.ChatWebSocketHandler;
+import com.example.chattest.interceptor.CustomHandshakeInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -19,7 +20,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(chatWebSocketHandler, "/chat")
-                .setAllowedOrigins("*"); // 根據需求調整允許的來源
+                .addInterceptors(new CustomHandshakeInterceptor())
+                .setAllowedOrigins("*");
     }
 }
 
