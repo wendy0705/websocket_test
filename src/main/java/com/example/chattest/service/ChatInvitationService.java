@@ -1,7 +1,5 @@
 package com.example.chattest.service;
 
-import com.example.chattest.dto.ChatInvitationRequestDto;
-import com.example.chattest.dto.InvitationAcceptedDto;
 import com.example.chattest.entity.ChatInvitation;
 import com.example.chattest.manager.WebSocketSessionManager;
 import com.example.chattest.repository.ChatInvitationRepository;

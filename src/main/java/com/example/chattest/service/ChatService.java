@@ -1,10 +1,7 @@
 package com.example.chattest.service;
 
 import com.example.chattest.document.ChatMessage;
-import com.example.chattest.document.ChatRoom;
 import com.example.chattest.repository.ChatMessageRepository;
-import com.example.chattest.repository.ChatRoomRepository;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,8 +13,6 @@ import java.util.*;
 @Slf4j
 @Service
 public class ChatService {
-
-    private final ChatRoomRepository chatRoomRepository;
 
     private final ChatMessageRepository chatMessageRepository;
     // 存放聊天室中的用戶，這裡我們以 Map<String, List<WebSocketSession>> 模擬多個聊天室
@@ -54,22 +49,6 @@ public class ChatService {
             }
         }
     }
-
-//    public ChatRoom findOrCreateChatRoom(String roomName) {
-//        // 使用 ChatRoomRepository 查找房間
-//        Optional<ChatRoom> chatRoomOptional = chatRoomRepository.findByRoomName(roomName);
-//
-//        // 如果房間不存在，則創建一個新的房間並保存
-//        if (!chatRoomOptional.isPresent()) {
-//            ChatRoom chatRoom = new ChatRoom(roomName);
-//            chatRoom = chatRoomRepository.save(chatRoom);
-//            log.info("新房間 {} 創建成功", roomName);
-//            return chatRoom;
-//        }
-//        // 如果房間存在，返回查詢到的房間
-//        return chatRoomOptional.get();
-//    }
-
 
     public void saveChatMessage(String chatRoomId, int senderId, String message) {
         ChatMessage chatMessage = new ChatMessage(chatRoomId, senderId, message);
