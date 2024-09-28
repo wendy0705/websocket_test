@@ -45,7 +45,7 @@
         }
 
         // 建立 WebSocket 來接收通知
-        notificationSocket = new WebSocket(`ws://localhost:8080/notifications?userId=${currentUserId}`);
+        notificationSocket = new WebSocket(`wss://wendystylish.online/notifications?userId=${currentUserId}`);
 
         notificationSocket.onmessage = function(event) {
             const data = JSON.parse(event.data);
@@ -166,7 +166,7 @@
         const roomName = `${sortedIds[0]}_${sortedIds[1]}`;  // 雙方共享的房間名稱
 
         // 用戶端通過 roomName 進入聊天 WebSocket
-        const socket = new WebSocket(`ws://localhost:8080/chat?userId=${currentUserId}&roomName=${roomName}`);
+        const socket = new WebSocket(`wss://wendystylish.online/chat?userId=${currentUserId}&roomName=${roomName}`);
 
         // 處理 WebSocket 連線成功事件
         socket.onopen = function() {
