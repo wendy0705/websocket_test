@@ -26,69 +26,88 @@
 </head>
 <body>
 
-<p>歡迎用戶 ID: <span th:text="${userId}"></span></p>
+<h1>Chat Invitation Test</h1>
 
-<div id="chat-box"></div>
+<!-- 模擬邀請者 ID 和被邀請者 ID -->
+<label for="inviterId">Inviter ID:</label>
+<input type="text" id="inviterId" placeholder="Enter inviter ID">
+<br>
 
-<input type="text" id="messageInput" placeholder="輸入訊息...">
-<button id="sendButton">發送</button>
+<label for="inviteeId">Invitee ID:</label>
+<input type="text" id="inviteeId" placeholder="Enter invitee ID">
+<br>
+
+<!-- 發送邀請按鈕 -->
+<button id="sendInviteBtn">Send Chat Invitation</button>
+<div id="invitation"></div>
+
+<!-- 顯示結果的區域 -->
+<p id="result"></p>
+
+<!-- WebSocket 聊天區域 -->
+<h2>Chat Room</h2>
+<input type="text" id="messageInput" placeholder="Enter message">
+<button id="sendMessageBtn">Send Message</button>
+<div id="messages"></div>
 
 <script>
-    const userId = /*[[${userId}]]*/ '[[${userId}]]';// 分頁 1 獲得 userId = 1, 分頁 2 獲得 userId = 2
-    const otherUserId = (userId == 1) ? 2 : 1;
+    document.getElementById('sendInviteBtn').addEventListener('click', function() {
+        const inviterId = document.getElementById('inviterId').value;
+        const inviteeId = document.getElementById('inviteeId').value;
 
-    const sortedIds = [userId, otherUserId].sort();
-    const roomName = `${sortedIds[0]}_${sortedIds[1]}`;
-    // 連接 WebSocket
-    const socket = new WebSocket(`ws://localhost:8080/chat?userId=${userId}&roomName=${roomName}`);
+        // 發送邀請請求到後端
+        fetch('/chat/invite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                inviter_id: inviterId,
+                invitee_id: inviteeId
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(JSON.stringify(data));
+                document.getElementById('result').innerText = 'Invitation sent: ' + JSON.stringify(data);
 
-    // 監聽 WebSocket 連線成功
-    socket.onopen = function(event) {
-        console.log("WebSocket 已連接");
-        const chatBox = document.getElementById("chat-box");
-        chatBox.innerHTML += "<p><strong>系統:</strong> WebSocket 連線成功！</p>";
-    };
+                // 獲取 sorted IDs，然後建立 WebSocket 連接
+                const sortedIds = [inviterId, inviteeId].sort();
+                const roomName = `${sortedIds[0]}_${sortedIds[1]}`;
 
-    // 監聽接收到的消息
-    socket.onmessage = function(event) {
-        const chatBox = document.getElementById("chat-box");
-        const newMessage = document.createElement("p");
-        newMessage.innerHTML = `${event.data}`;
-        chatBox.appendChild(newMessage);
-        chatBox.scrollTop = chatBox.scrollHeight; // 自動捲動到最新訊息
-    };
+                const socket = new WebSocket(`ws://localhost:8080/chat?userId=${inviterId}&roomName=${roomName}`);
 
-    // 監聽 WebSocket 關閉
-    socket.onclose = function(event) {
-        const chatBox = document.getElementById("chat-box");
-        chatBox.innerHTML += "<p><strong>系統:</strong> WebSocket 連線已斷開</p>";
-    };
+                // 處理 WebSocket 事件
+                socket.onopen = function() {
+                    console.log('WebSocket connection established');
+                    document.getElementById('messages').innerText = 'Connected to chat room: ' + roomName;
+                };
 
-    // 監聽 WebSocket 錯誤
-    socket.onerror = function(event) {
-        const chatBox = document.getElementById("chat-box");
-        chatBox.innerHTML += "<p><strong>系統:</strong> WebSocket 錯誤</p>";
-    };
+                socket.onmessage = function(event) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.innerText = 'Received: ' + event.data;
+                    document.getElementById('messages').appendChild(messageDiv);
+                };
 
-    // 發送消息
-    document.getElementById("sendButton").onclick = function() {
-        const messageInput = document.getElementById("messageInput");
-        const message = messageInput.value;
+                socket.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                };
 
-        const chatBox = document.getElementById("chat-box");
-
-        if (message.trim() !== "") {
-            socket.send(message); // 發送消息給後端
-
-            // 顯示自己發送的消息在聊天室中
-            const myMessage = document.createElement("p");
-            myMessage.innerHTML = `<strong>你:</strong> ${message}`;
-            chatBox.appendChild(myMessage);
-            chatBox.scrollTop = chatBox.scrollHeight; // 自動捲動到最新訊息
-
-            messageInput.value = ""; // 清空輸入框
-        }
-    };
+                // 發送訊息
+                document.getElementById('sendMessageBtn').addEventListener('click', function() {
+                    const message = document.getElementById('messageInput').value;
+                    socket.send(message);
+                    const messageDiv = document.createElement('div');
+                    messageDiv.innerText = 'Sent: ' + message;
+                    document.getElementById('messages').appendChild(messageDiv);
+                    document.getElementById('messageInput').value = '';
+                });
+            })
+            .catch(error => {
+                document.getElementById('result').innerText = 'Error: ' + error;
+                console.error('Error sending invitation:', error);
+            });
+    });
 </script>
 
 </body>

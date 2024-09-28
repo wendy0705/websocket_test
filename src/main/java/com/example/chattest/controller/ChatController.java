@@ -27,9 +27,19 @@ public class ChatController {
 
     // 動態處理 URL 路徑參數，例如 userId
     @GetMapping("/chatroom")
-    public String chatroom(@RequestParam("userId") String userId, Model model) {
-        // 這裡可以處理 userId，並將其傳遞給 Thymeleaf 模板
-        model.addAttribute("userId", userId);
+    public String chatroom() {
+//        @RequestParam("userId") String userId, Model model
+//        這裡可以處理 userId，並將其傳遞給 Thymeleaf 模板
+//        model.addAttribute("userId", userId);
         return "chatroom";  // 返回 Thymeleaf 模板名稱
     }
+
+    @GetMapping("/chatinvitation")
+    public String chatinvitation() {
+//        @RequestParam("userId") String userId, Model model
+//        這裡可以處理 userId，並將其傳遞給 Thymeleaf 模板
+//        model.addAttribute("userId", userId);
+        return "chatinvitation";  // 返回 Thymeleaf 模板名稱
+    }
+
 }

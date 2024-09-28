@@ -25,7 +25,7 @@ public class ChatService {
 
     // 將用戶加入聊天室
     public void addUserToChatRoom(String roomName, WebSocketSession session) {
-        findOrCreateChatRoom(roomName);
+//        findOrCreateChatRoom(roomName);
 
         chatRooms.putIfAbsent(roomName, new ArrayList<>()); // 如果聊天室不存在則創建
         List<WebSocketSession> participants = chatRooms.get(roomName);
@@ -55,21 +55,20 @@ public class ChatService {
         }
     }
 
-    public ChatRoom findOrCreateChatRoom(String roomName) {
-        // 使用 ChatRoomRepository 查找房間
-        Optional<ChatRoom> chatRoomOptional = chatRoomRepository.findByRoomName(roomName);
-
-        // 如果房間不存在，則創建一個新的房間並保存
-        if (!chatRoomOptional.isPresent()) {
-            ChatRoom chatRoom = new ChatRoom(roomName);
-            chatRoom = chatRoomRepository.save(chatRoom);
-            log.info("新房間 {} 創建成功", roomName);
-            return chatRoom;
-        }
-
-        // 如果房間存在，返回查詢到的房間
-        return chatRoomOptional.get();
-    }
+//    public ChatRoom findOrCreateChatRoom(String roomName) {
+//        // 使用 ChatRoomRepository 查找房間
+//        Optional<ChatRoom> chatRoomOptional = chatRoomRepository.findByRoomName(roomName);
+//
+//        // 如果房間不存在，則創建一個新的房間並保存
+//        if (!chatRoomOptional.isPresent()) {
+//            ChatRoom chatRoom = new ChatRoom(roomName);
+//            chatRoom = chatRoomRepository.save(chatRoom);
+//            log.info("新房間 {} 創建成功", roomName);
+//            return chatRoom;
+//        }
+//        // 如果房間存在，返回查詢到的房間
+//        return chatRoomOptional.get();
+//    }
 
 
     public void saveChatMessage(String chatRoomId, int senderId, String message) {
