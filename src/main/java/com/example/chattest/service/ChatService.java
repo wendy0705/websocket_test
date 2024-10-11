@@ -1,9 +1,15 @@
 package com.example.chattest.service;
 
 import com.example.chattest.document.ChatMessage;
+import com.example.chattest.dto.InvitationStatusResponseDto;
+import com.example.chattest.entity.ChatInvitation;
+import com.example.chattest.repository.ChatInvitationRepository;
 import com.example.chattest.repository.ChatMessageRepository;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -14,9 +20,11 @@ import java.util.*;
 @Service
 public class ChatService {
 
+    private final ChatInvitationRepository chatInvitationRepository;
     private final ChatMessageRepository chatMessageRepository;
     // 存放聊天室中的用戶，這裡我們以 Map<String, List<WebSocketSession>> 模擬多個聊天室
     private final Map<String, List<WebSocketSession>> chatRooms = new HashMap<>();
+
 
     // 將用戶加入聊天室
     public void addUserToChatRoom(String roomName, WebSocketSession session) {
@@ -28,7 +36,10 @@ public class ChatService {
         if (!participants.contains(session)) {
             participants.add(session);  // 如果用戶尚未加入，則加入房間
         }
-        log.info("用戶 {} 加入了房間 {}", session.getAttributes().get("userId"), roomName);
+
+        long userId = Long.parseLong(session.getAttributes().get("userId").toString());
+
+        log.info("用戶 {} 加入了房間 {}", userId, roomName);
     }
 
     // 取得聊天室內的成員（除了自己以外的成員）
@@ -50,7 +61,7 @@ public class ChatService {
         }
     }
 
-    public void saveChatMessage(String chatRoomId, int senderId, String message) {
+    public void saveChatMessage(String chatRoomId, Long senderId, String message) {
         ChatMessage chatMessage = new ChatMessage(chatRoomId, senderId, message);
         chatMessageRepository.save(chatMessage);  // 將聊天消息保存到 MongoDB
     }
@@ -58,5 +69,25 @@ public class ChatService {
     public List<ChatMessage> getChatHistory(String roomName) {
         // 從 MongoDB 查詢該房間的歷史消息
         return chatMessageRepository.findByChatRoomId(roomName);
+    }
+
+    public List<InvitationStatusResponseDto> getInvitationStatuses(Long myId, List<Long> userIds) {
+        List<ChatInvitation> invitations = chatInvitationRepository.findByInviterIdAndInviteeIdIn(myId, userIds);
+        List<InvitationStatusResponseDto> response = new ArrayList<>();
+
+        for (Long userId : userIds) {
+            Optional<ChatInvitation> invitation = invitations.stream()
+                    .filter(inv -> inv.getInviteeId().equals(userId))
+                    .findFirst();
+            if (invitation.isPresent()) {
+                response.add(new InvitationStatusResponseDto(userId, invitation.get().getInvitationStatus()));
+            } else {
+                response.add(new InvitationStatusResponseDto(userId, "none"));
+            }
+        }
+
+        log.info(response.toString());
+
+        return response;
     }
 }

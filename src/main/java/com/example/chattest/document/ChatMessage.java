@@ -13,11 +13,11 @@ public class ChatMessage {
     @Id
     private String id;
     private String chatRoomId;
-    private int senderId;
+    private Long senderId;
     private String message;
     private LocalDateTime timestamp;
 
-    public ChatMessage(String chatRoomId, int senderId, String message) {
+    public ChatMessage(String chatRoomId, Long senderId, String message) {
         this.chatRoomId = chatRoomId;
         this.senderId = senderId;
         this.message = message;

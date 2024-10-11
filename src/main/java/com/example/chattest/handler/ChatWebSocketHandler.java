@@ -32,7 +32,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         List<ChatMessage> previousMessages = chatService.getChatHistory(roomName);
 
         for (ChatMessage chatMessage : previousMessages) {
-            String messageSender = chatMessage.getSenderId() == Integer.parseInt(userId) ? "我" : String.valueOf(chatMessage.getSenderId());
+            String messageSender = chatMessage.getSenderId() == Long.parseLong(userId) ? "我" : String.valueOf(chatMessage.getSenderId());
             session.sendMessage(new TextMessage(messageSender + ": " + chatMessage.getMessage()));
         }
         System.out.println("用戶 " + userId + " 已連線");
@@ -53,7 +53,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             }
         }
 
-        chatService.saveChatMessage(roomName, Integer.parseInt(userId), messageContent);
+        chatService.saveChatMessage(roomName, Long.parseLong(userId), messageContent);
     }
 
     @Override
