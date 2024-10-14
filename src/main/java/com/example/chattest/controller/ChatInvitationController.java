@@ -29,6 +29,7 @@ public class ChatInvitationController {
 
     @PostMapping("/invite")
     public ResponseEntity<Map<String, String>> inviteUser(@RequestBody ChatInvitationRequestDto chatInvitation) throws Exception{
+        log.info("chatInvitation: {}", chatInvitation);
 
         chatInvitationService.createInvitation(chatInvitation.getInviterId(), chatInvitation.getInviteeId());
         chatInvitationService.notifyInvitee(chatInvitation.getInviterId(), chatInvitation.getInviteeId());
